@@ -15,7 +15,7 @@
           pname = "proktor";
           inherit version;
           src = self;
-          vendorHash = "sha256-AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=";
+          vendorHash = "sha256-hj1rQJED2llW782lPYYWDD1TgNgHPa0z9nUdj4kWryw=";
           subPackages = [ "cmd/proktor" ];
           env.CGO_ENABLED = 0;
           ldflags = [ "-s" "-w" "-X main.version=${version}" ];
