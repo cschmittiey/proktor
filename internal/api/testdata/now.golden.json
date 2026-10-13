@@ -1,0 +1,30 @@
+{
+  "v": 1,
+  "mode": "track",
+  "track": {
+    "artist": "New Order",
+    "title": "Blue Monday",
+    "source": "traktor",
+    "started_at": "2026-10-13T22:14:05Z"
+  },
+  "performer": "dj example",
+  "event_name": "801 something",
+  "history": [
+    {
+      "artist": "Kraftwerk",
+      "title": "Computer Love",
+      "source": "traktor",
+      "started_at": "2026-10-13T22:09:05Z"
+    },
+    {
+      "artist": "Étienne de Crécy",
+      "title": "Am I Wrong",
+      "source": "manual",
+      "started_at": "2026-10-13T22:03:05Z"
+    }
+  ],
+  "pending": null,
+  "seq": 42,
+  "updated_at": "2026-10-13T22:14:05Z"
+}
+
