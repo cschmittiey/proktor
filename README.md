@@ -39,6 +39,9 @@ go build ./cmd/proktor        # or: nix build . / nix run .
 ./proktor -token secret
 ```
 
+For a dev shell with Go, gopls, ffmpeg and jq, run `nix develop`, or
+`direnv allow` once to load it on `cd`.
+
 With no config file, defaults apply: ingest on `:8000` with mount `/live` and
 no password, HTTP API on `:8080`, no delay, recording off. The binary prints
 the DJ booth card with this machine's LAN addresses filled in.
