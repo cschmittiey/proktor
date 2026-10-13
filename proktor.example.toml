@@ -1,0 +1,141 @@
+# proktor example configuration.
+#
+# Copy to proktor.toml and edit. Every key is shown with its default or an
+# explanation. Unknown keys are an error (so typos are caught at startup).
+#
+# Everything here can also be overridden for quick on-site tweaks, with
+# precedence:  defaults < this file < environment < command-line flags.
+#   env:    PROKTOR_<PATH>, path upper-cased with "." -> "_"
+#             PROKTOR_HTTP_TOKEN=secret
+#             PROKTOR_METADATA_DELAY_SECONDS=45
+#             PROKTOR_UPSTREAM_0_PASSWORD=hunter2
+#             PROKTOR_INGEST_MOUNT_0_ON_CONFLICT=takeover
+#   (PROKTOR_CONFIG is reserved for the path of this file.)
+# Array entries are addressed by index (ingest.mount.0.password); an index one
+# past the end adds a new entry, so a whole upstream can be added from env/flags.
+#
+# Convention in this file: lines starting with "# " are explanation; lines
+# starting with "#" directly followed by a key or [table] are optional config
+# you can enable by removing the single "#".
+
+# Shown in the API state object ("event_name"). Free text.
+event_name = "801 something"
+
+# Where the file records tonight's state so a restart mid-event comes back
+# showing the right thing.
+[state]
+# Append-only JSON-lines file. Set to "" (via flag/env, e.g. PROKTOR_STATE_JOURNAL=)
+# to disable.
+journal = "./proktor-state.jsonl"
+
+# ---------------------------------------------------------------------------
+# Ingest: the Icecast "source" server that Traktor connects to.
+# DJ card: Server <proktor IP>, Port 8000, Mount /live, Password traktor.
+# ---------------------------------------------------------------------------
+[ingest]
+listen = "0.0.0.0:8000"
+
+# One [[ingest.mount]] per mount. Default if none given: a single "/live"
+# mount with no password.
+[[ingest.mount]]
+path = "/live"
+# Shared password for this mount. Any username is accepted (Traktor sends
+# "source"). Empty = no auth; the event LAN is the trust boundary.
+password = "traktor"
+# What happens when a second source connects to a busy mount:
+#   "reject"   - refuse it with 403 (default)
+#   "takeover" - drop the old connection, so a DJ handoff can't get stuck
+#                behind a dead laptop
+on_conflict = "takeover"
+
+# ---------------------------------------------------------------------------
+# Metadata / track state
+# ---------------------------------------------------------------------------
+[metadata]
+# Traktor flips its metadata as soon as the next deck starts playing. A
+# detected track waits this long before going live; a newer detection
+# replaces the pending one. 0 = immediate. 30-60 suits long blends.
+delay_seconds = 30
+# How long a manual "set" sticks:
+#   "until_next_auto" - until the next automatic change (default)
+#   "until_cleared"   - until someone clears it
+manual_pin = "until_next_auto"
+
+# ---------------------------------------------------------------------------
+# Upstreams: relay the stream to Icecast-compatible servers, using
+# credentials held by proktor so DJs never see them. Zero or more entries.
+# Uncomment to enable. Only plain http is supported so far (no https).
+#
+# This example is an AzuraCast streamer account. AzuraCast wants a username
+# and password, but its Icecast-compatible port only takes a password, so
+# auth_style = "user_in_password" sends the Basic credentials as
+# source:"username:password" (the AzuraCast / Liquidsoap workaround).
+# ---------------------------------------------------------------------------
+#[[upstream]]
+# Unique, non-empty label used in logs and /health.
+#name = "devfm"
+# Scheme + host + port of the server. (Path is ignored; use "mount".)
+#url = "http://radio.hack.bike:8005/"
+# Mount on the upstream server. Default "/".
+#mount = "/"
+# Streamer username. Default "source".
+#username = "dj_801"
+#password = "change-me"
+# "basic"            - Basic username:password (default)
+# "user_in_password" - Basic source:"username:password" (AzuraCast)
+#auth_style = "user_in_password"
+# "put" (Icecast 2.4+, default) or "source" (legacy SOURCE method).
+#protocol = "put"
+# Content-Type sent upstream. Default "application/ogg".
+#content_type = "application/ogg"
+# When the DJ disconnects, keep the upstream connection open this many
+# seconds for a fast handoff. 0 = disconnect immediately (default).
+#hold_seconds = 20
+# Which ingest mount to relay. Empty = every mount.
+#source_mount = "/live"
+# Per-upstream queue bound; if it falls this far behind it drops and
+# reconnects instead of growing memory. Default 4 MiB.
+#buffer_bytes = 4194304
+# Keep the entry but do not use it.
+#disabled = false
+
+# ---------------------------------------------------------------------------
+# Recorder: raw bytes of each set to disk, plus a tracklist sidecar.
+# Files go to <dir>/<date>/<HHMMSS>-<mount>-<performer>.ogg
+# ---------------------------------------------------------------------------
+[recorder]
+# Off by default. Check with the performers first.
+enabled = true
+dir = "./recordings"
+# Warn (log + /health) when free disk space drops below this. Default 2048.
+min_free_mb = 2048
+
+# ---------------------------------------------------------------------------
+# HTTP API and control page.
+# ---------------------------------------------------------------------------
+[http]
+listen = "0.0.0.0:8080"
+# Bearer token required for POST /now and the control page's buttons.
+# Empty = writes disabled. CHANGE THIS.
+token = "change-me"
+# How many past tracks the API state includes. Default 10 (0 means default).
+history_length = 10
+
+# ---------------------------------------------------------------------------
+# Webhooks out: POST the state JSON on every change. Fire-and-forget;
+# failures are logged and never block. Zero or more entries.
+# ---------------------------------------------------------------------------
+#[[webhook]]
+#url = "http://example.invalid/hook"
+# Give up after this many seconds. Default 5.
+#timeout_seconds = 5
+
+# ---------------------------------------------------------------------------
+# Text files: keep a file updated with what is playing, for OBS text sources
+# and the like. Zero or more entries.
+# ---------------------------------------------------------------------------
+[[textfile]]
+path = "./nowplaying.txt"
+# Go text/template rendered against the state. Leave out for the default
+# ("artist - title", or the performer, or empty).
+format = "{{with .Track}}{{.Artist}} - {{.Title}}{{end}}"
