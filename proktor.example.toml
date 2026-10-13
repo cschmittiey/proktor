@@ -64,7 +64,7 @@ manual_pin = "until_next_auto"
 # ---------------------------------------------------------------------------
 # Upstreams: relay the stream to Icecast-compatible servers, using
 # credentials held by proktor so DJs never see them. Zero or more entries.
-# Uncomment to enable. Only plain http is supported so far (no https).
+# Uncomment to enable. http:// and https:// URLs both work.
 #
 # This example is an AzuraCast streamer account. AzuraCast wants a username
 # and password, but its Icecast-compatible port only takes a password, so

@@ -240,7 +240,7 @@ func (c *Config) Validate() error {
 			add("%s.name: duplicate upstream name %q", f, u.Name)
 		}
 		names[u.Name] = true
-		if err := checkURL(f+".url", u.URL, false); err != nil {
+		if err := checkURL(f+".url", u.URL); err != nil {
 			errs = append(errs, err)
 		}
 		if u.Mount == "" {
@@ -275,7 +275,7 @@ func (c *Config) Validate() error {
 
 	for i, w := range c.Webhook {
 		f := fmt.Sprintf("webhook[%d]", i)
-		if err := checkURL(f+".url", w.URL, true); err != nil {
+		if err := checkURL(f+".url", w.URL); err != nil {
 			errs = append(errs, err)
 		}
 		if w.TimeoutSeconds < 0 {
@@ -290,9 +290,8 @@ func (c *Config) Validate() error {
 	return errors.Join(errs...)
 }
 
-// checkURL validates a URL. allowHTTPS is true for webhooks; upstreams only
-// support plain http for now.
-func checkURL(field, raw string, allowHTTPS bool) error {
+// checkURL validates an http or https URL with a host.
+func checkURL(field, raw string) error {
 	if raw == "" {
 		return fmt.Errorf("%s: must not be empty", field)
 	}
@@ -300,16 +299,8 @@ func checkURL(field, raw string, allowHTTPS bool) error {
 	if err != nil {
 		return fmt.Errorf("%s: %q does not parse as a URL: %v", field, raw, err)
 	}
-	switch {
-	case u.Scheme == "http":
-	case u.Scheme == "https" && allowHTTPS:
-	case u.Scheme == "https":
-		return fmt.Errorf("%s: https is not supported yet (%q)", field, raw)
-	default:
-		if allowHTTPS {
-			return fmt.Errorf("%s: %q must use http or https", field, raw)
-		}
-		return fmt.Errorf("%s: %q must use http", field, raw)
+	if u.Scheme != "http" && u.Scheme != "https" {
+		return fmt.Errorf("%s: %q must use http or https", field, raw)
 	}
 	if u.Host == "" {
 		return fmt.Errorf("%s: %q has no host", field, raw)

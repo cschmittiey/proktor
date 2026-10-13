@@ -157,7 +157,7 @@ func TestValidateAggregates(t *testing.T) {
 		"ingest.listen", "http.listen",
 		"duplicate mount", "ingest.mount[1].on_conflict", "ingest.mount[2].path",
 		"metadata.manual_pin", "metadata.delay_seconds",
-		"upstream[0].name", "https is not supported yet",
+		"upstream[0].name",
 		"upstream[1].url", "upstream[1].protocol", "upstream[1].auth_style", "upstream[1].hold_seconds", "upstream[1].buffer_bytes",
 		"duplicate upstream name", "upstream[2].url",
 		"http.history_length",
